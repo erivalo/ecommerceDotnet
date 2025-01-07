@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Order.Service;
 using Order.Service.ApiModels;
 using Order.Service.Infrastructure.Data;
+using Order.Service.Infrastructure.EventBus.Abstractions;
+using Order.Service.IntegrationEvents.Events;
 
 namespace Order.Service.Endpoints;
 
@@ -10,25 +12,28 @@ public static class OrderApiEndpoints
   public static void RegisterEndpoints(this IEndpointRouteBuilder routeBuilder)
   {
     routeBuilder.MapPost("/{customerId}",
-      ([FromServices] IOrderStore orderStore,
-      string customerId,
-      CreateOrderRequest request) =>
+    ([FromServices] IEventBus eventBus,
+     [FromServices] IOrderStore orderStore,
+     string customerId,
+     CreateOrderRequest request) =>
+    {
+      var order = new Models.Order
       {
-        var order = new Models.Order
-        {
-          CustomerId = customerId,
-        };
+        CustomerId = customerId
+      };
 
-        foreach (var product in request.OrderProducts)
-        {
-          order.AddOrderProduct(product.ProductId, product.Quantity);
-        }
-
-        orderStore.CreateOrder(order);
-
-        return TypedResults.Created($"{order.CustomerId}/{order.OrderId}");
+      foreach (var product in request.OrderProducts)
+      {
+        order.AddOrderProduct(product.ProductId, product.Quantity);
       }
-    );
+
+      orderStore.CreateOrder(order);
+
+      eventBus.PublishAsync(new OrderCreatedEvent(customerId));
+
+      return TypedResults.Created($"{order.CustomerId}/{order.OrderId}");
+    });
+
     routeBuilder.MapGet("/{customerId}/{orderId}", IResult ([FromServices] IOrderStore orderStore,
       string customerId,
       string orderId) =>
