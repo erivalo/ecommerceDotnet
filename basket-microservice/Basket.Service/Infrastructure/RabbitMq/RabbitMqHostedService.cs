@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
 using Basket.Service.Infrastructure.Data;
 using Basket.Service.IntegrationEvents;
 using RabbitMQ.Client;
@@ -8,6 +9,8 @@ using RabbitMQ.Client.Events;
 namespace Basket.Service.Infrastructure.RabbitMq;
 public class RabbitMqHostedService : IHostedService
 {
+  private const string ExchangeName = "ecommerce-exchange";
+  private const string QueueName = "basket-microservice";
   private readonly IServiceProvider _serviceProvider;
   public RabbitMqHostedService(IServiceProvider serviceProvider)
   {
@@ -20,18 +23,31 @@ public class RabbitMqHostedService : IHostedService
         {
           var rabbitMQConnection = _serviceProvider.GetRequiredService<IRabbitMqConnection>();
           var channel = rabbitMQConnection.Connection.CreateModel();
+          channel.ExchangeDeclare(
+            exchange: ExchangeName,
+            type: "fanout",
+            durable: false,
+            autoDelete: false,
+            null
+          );
           channel.QueueDeclare(
-                  queue: nameof(OrderCreatedEvent),
-                  durable: false,
-                  exclusive: false,
-                  autoDelete: false,
-                  arguments: null);
+            queue: QueueName,
+            durable: false,
+            exclusive: false,
+            autoDelete: false,
+            arguments: null
+          );
           var consumer = new EventingBasicConsumer(channel);
           consumer.Received += OnMessageReceived;
           channel.BasicConsume(
-                  queue: nameof(OrderCreatedEvent),
-                  autoAck: true,
-                  consumer: consumer);
+            queue: QueueName,
+            autoAck: true,
+            consumer: consumer);
+          channel.QueueBind(
+            queue: QueueName,
+            exchange: ExchangeName,
+            routingKey: string.Empty
+          );
         },
         TaskCreationOptions.LongRunning);
     return Task.CompletedTask;
