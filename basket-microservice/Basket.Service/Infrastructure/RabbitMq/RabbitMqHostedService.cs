@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using System.Threading.Channels;
+using ECommerce.Shared.Infrastructure.RabbitMq;
 using Basket.Service.Infrastructure.Data;
 using Basket.Service.IntegrationEvents;
 using RabbitMQ.Client;
