@@ -16,4 +16,6 @@ var app = builder.Build();
 
 app.RegisterEndpoints();
 
+app.UseHttpsRedirection();
+
 app.Run();

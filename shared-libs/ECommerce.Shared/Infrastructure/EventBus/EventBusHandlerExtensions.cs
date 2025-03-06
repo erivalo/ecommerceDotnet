@@ -4,8 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace ECommerce.Shared.Infrastructure.EventBus;
 public static class EventBusHandlerExtensions
 {
-  public static IServiceCollection AddEventHandler<TEvent, THandler>(
-  this IServiceCollection serviceCollection)
+  public static IServiceCollection AddEventHandler<TEvent, THandler>(this IServiceCollection serviceCollection)
       where TEvent : Event
       where THandler : class, IEventHandler<TEvent>
   {

@@ -5,6 +5,9 @@ using ECommerce.Shared.Infrastructure.RabbitMq;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<IOrderStore, InMemoryOrderStore>();
+
+builder.Services.AddEndpointsApiExplorer();
+
 builder.Services
   .AddRabbitMqEventBus(builder.Configuration)
   .AddRabbitMqEventPublisher();
@@ -12,5 +15,7 @@ builder.Services
 var app = builder.Build();
 
 app.RegisterEndpoints();
+
+app.UseHttpsRedirection();
 
 app.Run();
