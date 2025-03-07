@@ -22,7 +22,9 @@ internal class ProductContext : DbContext, IProductStore
 
   public async Task<ApiModels.Product?> GetById(int id)
   {
-    return await FindAsync<ApiModels.Product>(id);
+    return await Products
+      .Include(p => p.ProductType)
+      .FirstOrDefaultAsync(p => p.Id == id);
   }
 
   public async Task UpdateProduct(ApiModels.Product product)
