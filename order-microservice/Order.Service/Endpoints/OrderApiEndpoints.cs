@@ -11,7 +11,7 @@ public static class OrderApiEndpoints
   public static void RegisterEndpoints(this IEndpointRouteBuilder routeBuilder)
   {
     routeBuilder.MapPost("/{customerId}",
-    ([FromServices] IEventBus eventBus,
+    async ([FromServices] IEventBus eventBus,
      [FromServices] IOrderStore orderStore,
      string customerId,
      CreateOrderRequest request) =>
@@ -26,18 +26,18 @@ public static class OrderApiEndpoints
         order.AddOrderProduct(product.ProductId, product.Quantity);
       }
 
-      orderStore.CreateOrder(order);
+      await orderStore.CreateOrder(order);
 
-      eventBus.PublishAsync(new OrderCreatedEvent(customerId));
+      await eventBus.PublishAsync(new OrderCreatedEvent(customerId));
 
       return TypedResults.Created($"{order.CustomerId}/{order.OrderId}");
     });
 
-    routeBuilder.MapGet("/{customerId}/{orderId}", IResult ([FromServices] IOrderStore orderStore,
+    routeBuilder.MapGet("/{customerId}/{orderId}", async Task<IResult> ([FromServices] IOrderStore orderStore,
       string customerId,
       string orderId) =>
     {
-      var order = orderStore.GetCustomerOrderById(customerId, orderId);
+      var order = await orderStore.GetCustomerOrderById(customerId, orderId);
 
       return order is null ?
         TypedResults.NotFound("Order not found for customer") :
