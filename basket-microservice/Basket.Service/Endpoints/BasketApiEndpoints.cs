@@ -2,50 +2,63 @@ using Basket.Service.Infrastructure.Data;
 using Basket.Service.Models;
 using Basket.Service.ApiModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Threading.Tasks;
 
 namespace Basket.Service.Endpoints;
 public static class BasketApiEndpoints
 {
-  public static void RegisterEndpoints(this IEndpointRouteBuilder routeBuilder)
+  public static async Task RegisterEndpoints(this IEndpointRouteBuilder routeBuilder)
   {
-    routeBuilder.MapGet("/{customerId}", (
+    routeBuilder.MapGet("/{customerId}", async (
       [FromServices] IBasketStore basketStore,
       string customerId)
-        => basketStore.GetBasketByCustomerId(customerId));
+        => await basketStore.GetBasketByCustomerId(customerId));
 
-    routeBuilder.MapPost("/{customerId}", ([FromServices] IBasketStore basketStore, string customerId, CreateBasketRequest createBasketRequest) =>
+    routeBuilder.MapPost("/{customerId}", async (
+      [FromServices] IBasketStore basketStore,
+      [FromServices] IDistributedCache cache,
+      string customerId,
+      CreateBasketRequest createBasketRequest) =>
     {
       var customerBasket = new CustomerBasket { CustomerId = customerId };
 
-      customerBasket.AddBasketproduct(new BasketProduct(createBasketRequest.ProductId, createBasketRequest.ProductName));
-      basketStore.CreateCustomerBasket(customerBasket);
+      var cachedProductPrice = decimal.Parse(await cache.GetStringAsync(createBasketRequest.ProductId));
+
+      customerBasket.AddBasketproduct(new BasketProduct(createBasketRequest.ProductId, createBasketRequest.ProductName, cachedProductPrice));
+      await basketStore.CreateCustomerBasket(customerBasket);
 
       return TypedResults.Created();
     });
 
-    routeBuilder.MapPut("/{customerId}", ([FromServices] IBasketStore basketStore, string customerId, AddBasketProductRequest addProductRequest) =>
+    routeBuilder.MapPut("/{customerId}", async (
+      [FromServices] IBasketStore basketStore,
+      [FromServices] IDistributedCache cache,
+      string customerId,
+      AddBasketProductRequest addProductRequest) =>
     {
-      var customerBasket = basketStore.GetBasketByCustomerId(customerId);
+      var customerBasket = await basketStore.GetBasketByCustomerId(customerId);
+      var cachedProductPrice = decimal.Parse(await cache.GetStringAsync(addProductRequest.ProductId));
 
-      customerBasket.AddBasketproduct(new BasketProduct(addProductRequest.ProductId, addProductRequest.ProductName, addProductRequest.Quantity));
-      basketStore.UpdateCustomerBasket(customerBasket);
+      customerBasket.AddBasketproduct(new BasketProduct(addProductRequest.ProductId, addProductRequest.ProductName, cachedProductPrice, addProductRequest.Quantity));
+      await basketStore.UpdateCustomerBasket(customerBasket);
 
       return TypedResults.NoContent();
     });
 
-    routeBuilder.MapDelete("/{customerId}", ([FromServices] IBasketStore basketStore, string customerId) =>
+    routeBuilder.MapDelete("/{customerId}", async ([FromServices] IBasketStore basketStore, string customerId) =>
     {
-      basketStore.DeleteCustomerBasket(customerId);
+      await basketStore.DeleteCustomerBasket(customerId);
 
       return TypedResults.NoContent();
     });
 
-    routeBuilder.MapDelete("/{customerId}/{productId}", ([FromServices] IBasketStore basketStore, string customerId, string productId) =>
+    routeBuilder.MapDelete("/{customerId}/{productId}", async ([FromServices] IBasketStore basketStore, string customerId, string productId) =>
     {
-      var customerBasket = basketStore.GetBasketByCustomerId(customerId);
+      var customerBasket = await basketStore.GetBasketByCustomerId(customerId);
 
       customerBasket.RemoveBasketProduct(productId);
-      basketStore.UpdateCustomerBasket(customerBasket);
+      await basketStore.UpdateCustomerBasket(customerBasket);
 
       return TypedResults.NoContent();
     });

@@ -7,6 +7,14 @@ internal class CustomerBasket
   public IEnumerable<BasketProduct> Products => _products;
   public required string CustomerId { get; init; }
 
+  public decimal BasketTotal
+  {
+    get
+    {
+      return _products.Select(p => p.Quantity * p.ProductPrice).Sum();
+    }
+  }
+
   public void AddBasketproduct(BasketProduct basketProduct)
   {
     var existingProduct = _products.FirstOrDefault(i =>
