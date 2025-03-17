@@ -34,7 +34,7 @@ internal class RedisBasketStore : IBasketStore
     var customerBasket = new CustomerBasket { CustomerId = customerId };
     foreach (var product in deserializeProducts.Products)
     {
-      customerBasket.AddBasketproduct(product);
+      customerBasket.AddBasketProduct(product);
     }
 
     return customerBasket;

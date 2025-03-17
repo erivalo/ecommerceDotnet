@@ -15,7 +15,7 @@ internal class CustomerBasket
     }
   }
 
-  public void AddBasketproduct(BasketProduct basketProduct)
+  public void AddBasketProduct(BasketProduct basketProduct)
   {
     var existingProduct = _products.FirstOrDefault(i =>
       i.ProductId.Equals(basketProduct.ProductId));
