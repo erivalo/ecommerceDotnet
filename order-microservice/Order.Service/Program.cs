@@ -17,7 +17,8 @@ builder.Services
 builder.Services.AddOpenTelemetryTracing(
   "Order",
   builder.Configuration,
-  traceBuilder => traceBuilder.WithSqlInstrumentation());
+  traceBuilder => traceBuilder.WithSqlInstrumentation())
+  .AddOpenTelemetryMetrics();
 
 var app = builder.Build();
 
