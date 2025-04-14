@@ -30,6 +30,8 @@ builder.Services.AddOpenTelemetryTracing(
 
 var app = builder.Build();
 
+app.UsePrometheusExporter();
+
 if (app.Environment.IsDevelopment())
 {
   app.MigrateDatabase();

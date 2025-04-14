@@ -6,6 +6,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
 using ECommerce.Shared.Observability.Metrics;
+using Microsoft.AspNetCore.Builder;
 
 namespace ECommerce.Shared.Observability;
 public static class OpenTelemetryStartupExtensions
@@ -51,9 +52,13 @@ public static class OpenTelemetryStartupExtensions
         builder
           .AddConsoleExporter()
           .AddAspNetCoreInstrumentation()
-          .AddMeter(serviceName);
+          .AddMeter(serviceName)
+          .AddPrometheusExporter();
         customMetrics?.Invoke(builder);
       });
 
   }
+
+  public static void UsePrometheusExporter(this WebApplication webApplication) =>
+    webApplication.UseOpenTelemetryPrometheusScrapingEndpoint();
 }
