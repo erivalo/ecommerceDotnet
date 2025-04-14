@@ -4,7 +4,8 @@ namespace ECommerce.Shared.Observability.Metrics;
 public class MetricFactory
 {
   private readonly Meter _meter;
-  private readonly Dictionary<string, Counter<int>> _cachedCounters = new();
+  private readonly Dictionary<string, Counter<int>> _cachedCounters = [];
+  private readonly Dictionary<string, Histogram<int>> _cachedHistograms = [];
 
   public MetricFactory(string meterName)
   {
@@ -21,6 +22,18 @@ public class MetricFactory
     _cachedCounters[name] = counter;
 
     return counter;
+  }
+
+  public Histogram<int> Histogram(string name, string? unit = null)
+  {
+    if (_cachedHistograms.TryGetValue(name, out Histogram<int>? value))
+    {
+      return value;
+    }
+    var histogram = _meter.CreateHistogram<int>(name, unit: unit);
+    _cachedHistograms[name] = histogram;
+
+    return histogram;
   }
 
 }
