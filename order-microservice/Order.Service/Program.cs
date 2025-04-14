@@ -14,11 +14,12 @@ builder.Services.AddSqlServerDataStore(builder.Configuration);
 builder.Services
   .AddRabbitMqEventBus(builder.Configuration)
   .AddRabbitMqEventPublisher();
+const string serviceName = "Order";
 builder.Services.AddOpenTelemetryTracing(
-  "Order",
+  serviceName,
   builder.Configuration,
   traceBuilder => traceBuilder.WithSqlInstrumentation())
-  .AddOpenTelemetryMetrics();
+  .AddOpenTelemetryMetrics(serviceName, builder.Services);
 
 var app = builder.Build();
 

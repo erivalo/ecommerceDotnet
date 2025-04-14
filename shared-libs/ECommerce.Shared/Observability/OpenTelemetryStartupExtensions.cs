@@ -5,6 +5,7 @@ using OpenTelemetry;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using OpenTelemetry.Metrics;
+using ECommerce.Shared.Observability.Metrics;
 
 namespace ECommerce.Shared.Observability;
 public static class OpenTelemetryStartupExtensions
@@ -36,14 +37,21 @@ public static class OpenTelemetryStartupExtensions
   public static TracerProviderBuilder WithSqlInstrumentation(
     this TracerProviderBuilder builder) => builder.AddSqlClientInstrumentation();
 
-  public static OpenTelemetryBuilder AddOpenTelemetryMetrics(this OpenTelemetryBuilder openTelemetryBuilder)
+  public static OpenTelemetryBuilder AddOpenTelemetryMetrics(
+    this OpenTelemetryBuilder openTelemetryBuilder,
+    string serviceName,
+    IServiceCollection services
+  )
   {
+    services.AddSingleton(new MetricFactory(serviceName));
+
     return openTelemetryBuilder
       .WithMetrics(builder =>
       {
         builder
           .AddConsoleExporter()
-          .AddAspNetCoreInstrumentation();
+          .AddAspNetCoreInstrumentation()
+          .AddMeter(serviceName);
       });
 
   }
