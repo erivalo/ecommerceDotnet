@@ -1,9 +1,12 @@
+using ECommerce.Shared.Infrastructure.Outbox;
 using ECommerce.Shared.Infrastructure.RabbitMq;
 using ECommerce.Shared.Observability;
 using Product.Service.Endpoints;
 using Product.Service.Infrastructure.Data.EntityFramework;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOutbox(builder.Configuration);
 
 builder.Services
   .AddRabbitMqEventBus(builder.Configuration)
@@ -21,6 +24,7 @@ app.RegisterEndpoints();
 if (app.Environment.IsDevelopment())
 {
   app.MigrateDatabase();
+  app.ApplyOutboxMigrations();
 }
 
 app.Run();
