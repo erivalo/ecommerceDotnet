@@ -36,7 +36,7 @@ public static class ProductApiEndpoints
       await productStore.CreateProduct(product);
 
       return TypedResults.Created(product.Id.ToString());
-    });
+    }).RequireAuthorization();
 
     routeBuilder.MapPut("/{productId}", async Task<IResult> (
       [FromServices] IProductStore productStore,
@@ -71,6 +71,6 @@ public static class ProductApiEndpoints
       });
 
       return TypedResults.NoContent();
-    });
+    }).RequireAuthorization();
   }
 }

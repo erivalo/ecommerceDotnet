@@ -1,3 +1,4 @@
+using ECommerce.Shared.Authentication;
 using ECommerce.Shared.Infrastructure.Outbox;
 using ECommerce.Shared.Infrastructure.RabbitMq;
 using ECommerce.Shared.Observability;
@@ -7,6 +8,7 @@ using Product.Service.Infrastructure.Data.EntityFramework;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOutbox(builder.Configuration);
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services
   .AddRabbitMqEventBus(builder.Configuration)
@@ -20,6 +22,7 @@ builder.Services.AddOpenTelemetryTracing(
 var app = builder.Build();
 
 app.RegisterEndpoints();
+app.UseJwtAuthentication();
 
 if (app.Environment.IsDevelopment())
 {
