@@ -11,11 +11,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
       .IsRequired();
     builder.Property(u => u.Password)
       .IsRequired();
+    builder.Property(u => u.Role)
+      .IsRequired();
     builder.HasData(new User
     {
-      Id = Guid.NewGuid(),
+      Id = Guid.Parse("e02fd0e4-00fd-090A-ca30-0d00a0038ba0"),
       Username = "microservices@erivalo.com",
-      Password = "oKNrqkO7iC#G"
+      Password = "oKNrqkO7iC#G",
+      Role = "Administrator"
     });
   }
 }

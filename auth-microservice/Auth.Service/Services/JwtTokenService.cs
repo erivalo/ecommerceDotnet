@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text;
 using Auth.Service.Infrastructure.Data.EntityFramework;
@@ -33,7 +34,8 @@ public class JwtTokenService : ITokenService
 
     var claims = new List<Claim>
       {
-        new Claim(JwtRegisteredClaimNames.Name, user.Username)
+        new Claim(JwtRegisteredClaimNames.Name, user.Username),
+        new Claim("user_role", user.Role),
       };
 
     var tokenOptions = new JwtSecurityToken(
