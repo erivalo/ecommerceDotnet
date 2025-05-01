@@ -1,0 +1,81 @@
+services:
+  sql:
+    container_name: sql
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - "1433:1433"
+    environment:
+      - "ACCEPT_EULA=Y"
+      - "MSSQL_SA_PASSWORD=micR0S3rvice$"
+  product:
+    container_name: product
+    build:
+      context: .
+      dockerfile: ./product-microservice/Product.Service/Dockerfile
+    ports:
+      - "8002:8080"
+    environment:
+      - "ASPNETCORE_ENVIRONMENT=Development"
+      - "RabbitMq__HostName=host.docker.internal"
+      - "ConnectionStrings__Default=Server=host.docker.internal,1433;Database=Product;User Id=sa;Password=micR0S3rvice$;TrustServerCertificate=True"
+  order:
+    container_name: order
+    build:
+      context: .
+      dockerfile: ./order-microservice/Order.Service/Dockerfile
+    ports:
+      - "8001:8080"
+    environment:
+      - "ASPNETCORE_ENVIRONMENT=Development"
+      - "RabbitMq__HostName=host.docker.internal"
+      - "ConnectionStrings__Default=Server=host.docker.internal,1433;Database=Order;User Id=sa;Password=micR0S3rvice$;TrustServerCertificate=True"
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  redis:
+    container_name: redis
+    image: redis:6.2-alpine
+    ports:
+      - "6379:6379"
+  basket:
+    container_name: basket
+    build:
+      context: .
+      dockerfile: ./basket-microservice/Basket.Service/Dockerfile
+    ports:
+      - "8000:8080"
+    environment:
+      - "RabbitMq__HostName=host.docker.internal"
+      - "Redis__Configuration=host.docker.internal:6379"
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/all-in-one:1.58
+    ports:
+      - "4317:4317"
+      - "16686:16686"
+  auth:
+    container_name: auth
+    build:
+      context: .
+      dockerfile: ./auth-microservice/Auth.Service/Dockerfile
+    ports:
+      - "8003:8080"
+    environment:
+      - "ASPNETCORE_ENVIRONMENT=Development"
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus-config.yaml:/etc/prometheus/prometheus.yml
+  gateway:
+    container_name: gateway
+    build:
+      context: .
+      dockerfile: ./api-gateway/ApiGateway/Dockerfile
+    ports:
+      - "8004:8080"
